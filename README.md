@@ -42,7 +42,7 @@ Tools > Port > Select the appropriate COM port
 4.	Observe the output for LDR readings and pill status.
 
 # Milestone 2
-In this milestone, we completed the end-to-end system integration for our IoT-based pillbox. Using Light Dependent Resistor sensors connected to an ESP32, we detect pill presence based on light intensity. The ESP32 processes sensor data with noise filtering, sends status updates to a FastAPI backend, and visualizes results through a Streamlit dashboard. This milestone focuses on achieving stable hardware-software communication and real-time pill status monitoring.
+In this milestone, we completed the end-to-end system integration for our IoT-based pillbox. Using LDR sensors connected to an ESP32, we detect pill presence based on light intensity. The ESP32 processes sensor data with noise filtering, sends status updates to a FastAPI backend, and visualizes results through a Streamlit dashboard. This milestone focuses on achieving stable hardware-software communication and real-time pill status monitoring.
 
 ## Project Structure
 
@@ -115,68 +115,3 @@ In this milestone, we completed the end-to-end system integration for our IoT-ba
    ```
 3. Open the browser window and click "Refresh Data" to view the latest pill box status.
 
-## Code Explanation
-
-### Device Code (`main.cpp`)
-
-- **Libraries Used:**
-  - `WiFi.h`: for ESP32 Wi-Fi connection
-  - `HTTPClient.h`: to send HTTP POST requests
-  - `ArduinoJson.h`: for JSON formatting
-
-- **LDR Pins:**
-  - Seven LDR sensors connected to GPIO pins 4–10.
-
-- **Filtering:**
-  - Each sensor reading goes through two filters:
-    - **Median Filter**: Removes spikes by selecting the middle value of 5 recent readings.
-    - **Exponential Moving Average (EMA)**: Smooths the output using a weighted average.
-
-- **Thresholding:**
-  - If a filtered LDR value exceeds a predefined threshold, the pill is considered removed.
-
-- **Data Format:**
-  - Every 5 seconds, the ESP32 sends a JSON payload like:
-    ```json
-    {
-      "timestamp": 12345678,
-      "pill_status": [true, false, false, true, ...]
-    }
-    ```
-  - `true` means pill removed, `false` means pill present.
-
-- **Networking:**
-  - The device connects to Wi-Fi, then sends the filtered data to the FastAPI endpoint at `/api/pill-data`.
-
-### Backend Code (`main.py`)
-
-- **FastAPI App:**
-  - Has two endpoints:
-    - `POST /api/pill-data`: Receives and logs pill data
-    - `GET /api/pill-data`: Returns the latest 20 entries
-
-- **Data Model:**
-  - Uses Pydantic to validate incoming JSON structure with:
-    - `timestamp: int`
-    - `pill_status: List[bool]`
-
-- **In-Memory Log:**
-  - Keeps a list of recent submissions (does not persist data long-term).
-
-### Frontend Code (`app.py`)
-
-- **Streamlit App:**
-  - Sends GET requests to the backend to fetch the latest pill status.
-
-- **Display:**
-  - Converts raw pill status to a readable format:
-    - `"Pill removed"` if `true`
-    - `"Pill present"` if `false`
-  - Shows this in a table with the most recent timestamp formatted into human-readable time.
-
-## Troubleshooting
-
-- Ensure ESP32 and your computer are on the same Wi-Fi network.
-- Check your firewall settings to allow port 8000 for the backend.
-- Make sure the backend IP matches between ESP32 and frontend.
-- Use serial output to debug ESP32 sensor readings and Wi-Fi status.
