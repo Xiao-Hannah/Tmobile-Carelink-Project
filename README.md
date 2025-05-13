@@ -44,7 +44,9 @@ Tools > Port > Select the appropriate COM port
 # Milestone 2
 In this milestone, we completed the end-to-end system integration for our IoT-based pillbox. Using LDR sensors connected to an ESP32, we detect pill presence based on light intensity. The ESP32 processes sensor data with noise filtering, sends status updates to a FastAPI backend, and visualizes results through a Streamlit dashboard. This milestone focuses on achieving stable hardware-software communication and real-time pill status monitoring.
 
-## Photoresistor Steup (ESP32S3 + LDR + FastAPI + Streamlit)
+This is the same structure we're using for the camera component as well, detecting the gesture using MediaPipe library on the server side code. The distance between the hand and the nose indicates whether the pill-taking gesture has been made, and the frontend visualizes key information including time of camera activated, number of gestures made and whether we can make the assumption that the pill has been consumed.
+
+## Photoresistor Setup (ESP32S3 + LDR + FastAPI + Streamlit)
 
 This device uses an **ESP32 microcontroller** and **photoresistors (LDRs)** to monitor the status of pills being present or removed in pillbox. It includes a **FastAPI backend** to collect and store real-time sensor data, and a **Streamlit frontend** to visualize values from pill-taking events.
 
@@ -149,3 +151,17 @@ The frontend will be available on the local machine and will display recent pill
 6. Open the serial monitor to check output:
    ```
    pio device monitor
+
+## Camera Setup (ESP32S3 + Attached Camera + Server.py + FastAPI + Streamlit)
+
+## 🔧 Hardware Setup
+
+### Components
+- ESP32S3
+- Camera attachment
+- Battery and power switch
+- Button (GPIO2)
+- Wi-Fi connection
+
+#### Upload Steps
+This is the same as the photoresistor component - with an added step of running the server code. This server code should run in between the backend and the frontend steps.
