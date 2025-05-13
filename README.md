@@ -115,3 +115,95 @@ In this milestone, we completed the end-to-end system integration for our IoT-ba
    ```
 3. Open the browser window and click "Refresh Data" to view the latest pill box status.
 
+
+
+# Photoresistor Steup (ESP32S3 + LDR + FastAPI + Streamlit)
+
+This device uses an **ESP32 microcontroller** and **photoresistors (LDRs)** to monitor the status of pills being present or removed in pillbox. It includes a **FastAPI backend** to collect and store real-time sensor data, and a **Streamlit frontend** to visualize values from pill-taking events.
+
+
+## 🔧 Hardware Setup
+
+### Components
+- ESP32S3
+- 7 × photoresistors (LDR)
+- 7 × 10kΩ resistors
+- Battery and power switch
+- PCB
+- Wi-Fi connection
+
+### Wiring
+Each LDR is connected in a voltage divider circuit with a 10kΩ resistor. Connect the analog output of each divider to the following ESP32 pins:
+- LDR1 → GPIO 4
+- LDR2 → GPIO 5
+- LDR3 → GPIO 6
+- LDR4 → GPIO 7
+- LDR5 → GPIO 8
+- LDR6 → GPIO 9
+- LDR7 → GPIO 10
+
+## Project Structure
+smart-pillbox/
+│
+├── arduino/ # ESP32 code (PlatformIO)
+│ └── main.cpp
+│
+├── backend/ # FastAPI server
+│ └── main.py
+│
+├── frontend/ # Streamlit dashboard
+│ └── app.py
+│
+└── README.md
+
+
+---
+
+## Setup Instructions
+
+### 1. ESP32 Firmware
+
+#### Prerequisites
+- **PlatformIO IDE** (or VSCode with PlatformIO extension)
+- **ESP32 board support** (installed via PlatformIO)
+- Libraries:
+  - `WiFi.h`
+  - `HTTPClient.h`
+  - `ArduinoJson`
+
+#### Upload Steps
+1. Open `src/main.cpp` in PlatformIO IDE.
+2. Set your **Wi-Fi credentials**:
+   ```cpp
+   const char* ssid = "YOUR_SSID";
+   const char* password = "YOUR_PASSWORD";
+
+3. Set your backend IP:
+const char* serverUrl = "http://10.18.101.245:8000/api/pill-data";
+4. Select board: ESP32 Dev Module.
+5. Upload the code and open the Serial Monitor to verify connectivity.
+
+
+### 2. FastAPI Backend
+#### Prerequisites
+- Python 3.9+
+pip install fastapi uvicorn
+- Run
+cd backend
+uvicorn main:app --host 0.0.0.0 --port 8000
+The backend listens at: http://10.18.101.245:8000/api/pill-data
+It stores and serves recent pill data in-memory.
+
+### 3. Streamlit Frontend
+#### Prerequisites
+- Python 3.9+
+- Install Streamlit and other dependencies:
+pip install streamlit pandas requests
+
+#### Run
+1. Navigate to the frontend folder.
+2. Start the Streamlit frontend:
+streamlit run app.py
+The frontend will be available on the local machine and will display recent pill status data. You can refresh the data by clicking the "Refresh Data" button.
+
+
