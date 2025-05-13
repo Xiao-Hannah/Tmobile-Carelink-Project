@@ -44,83 +44,9 @@ Tools > Port > Select the appropriate COM port
 # Milestone 2
 In this milestone, we completed the end-to-end system integration for our IoT-based pillbox. Using LDR sensors connected to an ESP32, we detect pill presence based on light intensity. The ESP32 processes sensor data with noise filtering, sends status updates to a FastAPI backend, and visualizes results through a Streamlit dashboard. This milestone focuses on achieving stable hardware-software communication and real-time pill status monitoring.
 
-## Project Structure
-
-- `device/` – Code for ESP32 microcontroller (PlatformIO)
-- `backend/` – FastAPI server for receiving and storing pill data
-- `frontend/` – Streamlit app to visualize pill statuses
-
-## How to Run the Project
-
-### 1. ESP32 Device Setup (PlatformIO)
-
-#### Requirements
-- VS Code with the PlatformIO extension
-- ESP32 board
-- Wi-Fi access
-
-#### Steps
-1. Clone this repository and open it in VS Code with PlatformIO.
-2. Open the device code (usually `src/main.cpp`) and update your Wi-Fi credentials:
-   ```cpp
-   const char* ssid = "YOUR_WIFI_SSID";
-   const char* password = "YOUR_WIFI_PASSWORD";
-   ```
-3. Make sure your LDR sensors are connected to GPIO pins 4 through 10.
-4. Connect the ESP32 board to your computer.
-5. Upload the firmware:
-   - Press the "Upload" button in PlatformIO toolbar, or run:
-     ```
-     pio run --target upload
-     ```
-6. Open the serial monitor to check output:
-   ```
-   pio device monitor
-   ```
-
-### 2. Backend Setup (FastAPI)
-
-#### Requirements
-- Python 3.9 or higher
-- Install dependencies:
-  ```
-  pip install fastapi uvicorn
-  ```
-
-#### Run the server:
-1. Navigate to the backend directory.
-2. Run:
-   ```
-   uvicorn main:app --host 0.0.0.0 --port 8000
-   ```
-3. Confirm the backend is running at:
-   ```
-   http://<your-local-IP>:8000/api/pill-data
-   ```
-
-### 3. Frontend Setup (Streamlit)
-
-#### Requirements
-- Python 3.9 or higher
-- Install dependencies:
-  ```
-  pip install streamlit requests pandas
-  ```
-
-#### Run the app:
-1. Navigate to the frontend directory.
-2. Run:
-   ```
-   streamlit run app.py
-   ```
-3. Open the browser window and click "Refresh Data" to view the latest pill box status.
-
-
-
-# Photoresistor Steup (ESP32S3 + LDR + FastAPI + Streamlit)
+## Photoresistor Steup (ESP32S3 + LDR + FastAPI + Streamlit)
 
 This device uses an **ESP32 microcontroller** and **photoresistors (LDRs)** to monitor the status of pills being present or removed in pillbox. It includes a **FastAPI backend** to collect and store real-time sensor data, and a **Streamlit frontend** to visualize values from pill-taking events.
-
 
 ## 🔧 Hardware Setup
 
@@ -206,4 +132,20 @@ pip install streamlit pandas requests
 streamlit run app.py
 The frontend will be available on the local machine and will display recent pill status data. You can refresh the data by clicking the "Refresh Data" button.
 
-
+#### Steps
+1. Clone this repository and open it in VS Code with PlatformIO.
+2. Open the device code (usually `src/main.cpp`) and update your Wi-Fi credentials:
+   ```cpp
+   const char* ssid = "YOUR_WIFI_SSID";
+   const char* password = "YOUR_WIFI_PASSWORD";
+   ```
+3. Make sure your LDR sensors are connected to GPIO pins 4 through 10.
+4. Connect the ESP32 board to your computer.
+5. Upload the firmware:
+   - Press the "Upload" button in PlatformIO toolbar, or run:
+     ```
+     pio run --target upload
+     ```
+6. Open the serial monitor to check output:
+   ```
+   pio device monitor
