@@ -164,4 +164,28 @@ The frontend will be available on the local machine and will display recent pill
 - Wi-Fi connection
 
 #### Upload Steps
-This is the same as the photoresistor component - with an added step of running the server code. This server code should run in between the backend and the frontend steps.
+1. Open `src/main.cpp` in PlatformIO IDE.
+2. Set your **Wi-Fi credentials**:
+   ```cpp
+   const char* ssid = "YOUR_SSID";
+   const char* password = "YOUR_PASSWORD";
+   const char* serverUrl = "URL";
+   ```
+3. Upload the code and open the Serial Monitor to verify connectivity.
+
+#### Server Side Steps
+1. Navigate to `server` folder from terminal.
+2. Open `flask_server.py`, `flask_backend.py` and `streamlit_frontend.py`.
+3. Set up a virtual environment with the following sequence (note - please ensure python 3.10 has been installed - this is necessary for some packages required)
+   ```terminal
+   rm -rf venv
+   python3.10 -m venv venv`
+   source venv/bin/activate`
+   pip install --no-cache-dir -r requirements.txt
+   ```
+4. Open three terminals, each running each script.
+5. Start by running the `flask_backend.py` with `python flask_backend.py` in terminal.
+6. Run `flask_server.py` with `python flask_server.py` in terminal.
+7. Run `streamlit_frontend.py` with `streamlit streamlit_frontend.py`.
+8. Navigate to local host, turn on your camera device and start capturing the gestures by pressing the button!
+     
