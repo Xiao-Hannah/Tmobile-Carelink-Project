@@ -183,9 +183,10 @@ The frontend will be available on the local machine and will display recent pill
    source venv/bin/activate`
    pip install --no-cache-dir -r requirements.txt
    ```
-4. Open three terminals, each running each script.
-5. Start by running the `flask_backend.py` with `python flask_backend.py` in terminal.
-6. Run `flask_server.py` with `python flask_server.py` in terminal.
-7. Run `streamlit_frontend.py` with `streamlit streamlit_frontend.py`.
-8. Navigate to local host, turn on your camera device and start capturing the gestures by pressing the button!
+4. To add your own firebase, remember to add your credentials JSON file to the same `server` folder, and reference it in the `flask_server.py` code.
+5. Open three terminals, each running each script.
+6. Start by running the `flask_backend.py` with `python flask_backend.py` in terminal.
+7. Run `flask_server.py` with `python flask_server.py` in terminal.
+8. Run `streamlit_frontend.py` with `streamlit run streamlit_frontend.py`.
+9. Navigate to local host, turn on your camera device and start capturing the gestures by pressing the button!
      
