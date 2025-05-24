@@ -21,7 +21,7 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 
 # Initialize Firebase once
-cred = credentials.Certificate("medication-tracking-f24d7-firebase-adminsdk-fbsvc-a62de30b6e.json")  # Path to your downloaded JSON
+cred = credentials.Certificate("--------.json")  # Path to your downloaded JSON -fill in the name of that file
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 
