@@ -4,10 +4,11 @@
 #include <Arduino.h>
 #include "camera_pins.h"
 
-const char* serverUrl = "http://10.19.227.222:8000/upload";  // Flask server IP
+// const char* serverUrl = "http://10.19.227.222:8000/upload";  // Flask server IP
 
-const char* ssid = "UW MPSK";
-const char* password = "7Dc9T%k!{!";
+const char* ssid = "------------"; //replace
+const char* password = "--------"; //replace
+const char* serverUrl = "http://192.168.0.145:8000/upload";  // Flask server IP
 
 // Button configuration
 #define BUTTON_PIN 2         // GPIO 2 for lid switch
@@ -106,13 +107,23 @@ void captureFrames() {
   const int frames_to_capture = FRAMES_PER_CAPTURE;
   int frame_count = 0;
 
-  while (frame_count < frames_to_capture) {
-    // Check if lid was closed during capture - stop if it was
+  // 📏 Measure RAM before capture
+  int heapBefore = ESP.getFreeHeap();
+
+  // ⏱️ Measure CPU time before capture
+  unsigned long start = millis();
+
+  unsigned long captureStart = millis();
+  while (frame_count < FRAMES_PER_CAPTURE) {
+    if (millis() - captureStart > 10000) {
+      Serial.println("⏳ Max capture duration reached. Stopping.");
+      break;
+    }
     if (isLidClosed()) {
       Serial.println("⚠️ Lid closed during capture - stopping");
       break;
     }
-    
+
     camera_fb_t *fb = esp_camera_fb_get();
     if (!fb) continue;
 
@@ -124,13 +135,6 @@ void captureFrames() {
       int httpResponseCode = http.POST(fb->buf, fb->len);
       Serial.printf("📤 Frame %d sent — status: %d\n", frame_count + 1, httpResponseCode);
 
-      // Optional: read the gesture count response on the final frame
-      if (httpResponseCode == 200 && frame_count == frames_to_capture - 1) {
-        String response = http.getString();
-        Serial.print("📊 Gesture count from server: ");
-        Serial.println(response);
-      }
-
       http.end();
     }
 
@@ -138,6 +142,13 @@ void captureFrames() {
     delay(100);
     frame_count++;
   }
+
+  unsigned long end = millis();
+  int heapAfter = ESP.getFreeHeap();
+
+  // 📊 Output performance stats
+  Serial.printf("🧠 RAM used during capture: %d bytes\n", heapBefore - heapAfter);
+  Serial.printf("⏱️ Total capture time: %lu ms\n", end - start);
 
   Serial.println("💤 Done capturing burst.");
 }
@@ -270,5 +281,5 @@ void loop() {
     }
   }
   
-  delay(50);  // Small delay to prevent CPU hogging
+  delay(100);  // Small delay to prevent CPU hogging
 }
