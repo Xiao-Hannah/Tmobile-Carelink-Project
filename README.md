@@ -179,9 +179,9 @@ The frontend will be available on the local machine and will display recent pill
 3. Set up a virtual environment with the following sequence (note - please ensure python 3.10 has been installed - this is necessary for some packages required)
    ```terminal
    rm -rf venv
-   python3.10 -m venv venv`
-   source venv/bin/activate`
-   pip install --no-cache-dir -r requirements.txt
+   python3.10 -m venv venv
+   source venv/bin/activate
+   pip install --no-deps --no-cache-dir -r requirements.txt
    ```
 4. To add your own firebase, remember to add your credentials JSON file to the same `server` folder, and reference it in the `flask_server.py` code.
 5. Open three terminals, each running each script.
