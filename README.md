@@ -194,24 +194,33 @@ The frontend will be available on the local machine and will display recent pill
 # Milestone 3
 In this final milestone, we focused on integrating both photoresistor and camera subsystems into a unified medication tracking platform, supporting real-time doctor-patient interactions. 
 
-#### Full System Integration
+## Full System Integration
 We deployed two complementary sensing modalities:
 - Photoresistors (LDRs) detect physical removal of pills from each compartment.
 - Camera Module captures and verifies pill-taking gestures via MediaPipe (hand-to-nose movement).
   
 Data from both sensors are timestamped and sent to a cloud-based FastAPI/Flask backend. If both LDR and gesture detection occur within a defined time window, the system confidently marks the pill as “taken.” Otherwise, it flags the action as “Not Taken” on both patient and doctor portal, and the LED light on the pill box will flash red to notify. If either the photoresistor or the camera fails to detect correctly, the system marks the status as “Uncertain,” which there is a chance to allow the patinet/caregive to manually confirm medication intake status on the patient portal. After a 7-day period, the LED on the pillbox will blink white to remind the patient/caregiver to refill the pillbox.
 
-#### Deployment
+## Deployment
 - All components are housed in a custom PCB and a 3D-printed enclosure, powered via battery.
 - The system (The camera and the photo resistors) is automatically activated when the pillbox is opened, triggered by an embedded switch mechanism placed inside the bottom left part of the pill box.
 - The device connects to the cloud through T-Mobile’s 5G network, which supports real-time data upload and remote monitoring without depending on local Wi-Fi.
 - Backend supports real-time Firebase integration, enabling potential EHR sync in the future.
 
-#### Frontend Visualization
-We interated and finalized the UI design for patient and doctor dashboards and built an updated dashboards to visualize and receiving real-time data collection from the pillbox:
-	•	Daily pill intake status by time and compartment
-	•	Pill-taking gesture timestamps
-	•	Discrepancy warnings (e.g., pill removed without matching gesture)
-	•	Weekly adherence trends (calculated server-side)
+## Frontend Visualization
+We interated on and finalized the UI design for both patient and doctor dashboards and implemented responsive dashboards using React, HTML, CSS, and JavaScript within the Cursor development environment to visualize and receiving real-time data collection from the pillbox. We also integrated our portals with two other teams sponsored by the T-Mobile CareLink+ project, allowing both patients and doctors to sign in through one unified platform.
+
+#### Key features include:
+##### Daily Pill Intake Tracking: 
+Displays pill status by time and compartment using a simple, color-coded calendar view.
+##### Weekly Adherence Summaries:
+Visualizes weekly medication patterns using backend-generated data and intuitive charts.
+##### Blood Pressure Summary:
+Provides a quick overview of the patient’s recent blood pressure readings for contextual health insights.
+##### Medication Adherence Reminders:
+Automatically sends reminders to patients based on missed doses or irregular intake patterns.
+##### Doctor-to-Patient Messaging:
+Allows doctors to send personalized notes or feedback directly to patients, which can be reviewed in their individual portal.
+
 
 
