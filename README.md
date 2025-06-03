@@ -192,4 +192,13 @@ The frontend will be available on the local machine and will display recent pill
 
 
 # Milestone 3
-At the final stage, 
+In this final milestone, we focused on integrating both photoresistor and camera subsystems into a unified medication tracking platform, supporting real-time doctor-patient interactions.
+
+#### Full System Integration
+We deployed two complementary sensing modalities:
+	•	Photoresistors (LDRs) detect physical removal of pills from each compartment.
+	•	Camera Module captures and verifies pill-taking gestures via MediaPipe (hand-to-nose movement).
+```
+Data from both modules are timestamped and sent to a cloud-based FastAPI/Flask backend. If both LDR and gesture detection occur within a defined time window, the system confidently marks the pill as “taken.” Otherwise, it flags an alert for caregiver review.
+
+
