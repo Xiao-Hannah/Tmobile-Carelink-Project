@@ -199,9 +199,19 @@ We deployed two complementary sensing modalities:
 - Photoresistors (LDRs) detect physical removal of pills from each compartment.
 - Camera Module captures and verifies pill-taking gestures via MediaPipe (hand-to-nose movement).
   
-Data from both sensots are timestamped and sent to a cloud-based FastAPI/Flask backend. If both LDR and gesture detection occur within a defined time window, the system confidently marks the pill as “taken.” Otherwise, it flags as "Not Taken" for patient/caregiver and doctor to review.
+Data from both sensors are timestamped and sent to a cloud-based FastAPI/Flask backend. If both LDR and gesture detection occur within a defined time window, the system confidently marks the pill as “taken.” Otherwise, it flags the action as “Not Taken” on both patient and doctor portal, and the LED light on the pill box will flash red to notify. If either the photoresistor or the camera fails to detect correctly, the system marks the status as “Uncertain,” which there is a chance to allow the patinet/caregive to manually confirm medication intake status on the patient portal. After a 7-day period, the LED on the pillbox will blink white to remind the patient/caregiver to refill the pillbox.
 
 #### Deployment
-- All components are housed in a custom PCB + 3D-printed enclosure, powered via battery.
-- Users press a physical button to activate the camera during pill-taking.
+- All components are housed in a custom PCB and a 3D-printed enclosure, powered via battery.
+- The system (The camera and the photo resistors) is automatically activated when the pillbox is opened, triggered by an embedded switch mechanism placed inside the bottom left part of the pill box.
+- The device connects to the cloud through T-Mobile’s 5G network, which supports real-time data upload and remote monitoring without depending on local Wi-Fi.
 - Backend supports real-time Firebase integration, enabling potential EHR sync in the future.
+
+#### Frontend Visualization
+We interated and finalized the UI design for patient and doctor dashboards and built an updated dashboards to visualize and receiving real-time data collection from the pillbox:
+	•	Daily pill intake status by time and compartment
+	•	Pill-taking gesture timestamps
+	•	Discrepancy warnings (e.g., pill removed without matching gesture)
+	•	Weekly adherence trends (calculated server-side)
+
+
