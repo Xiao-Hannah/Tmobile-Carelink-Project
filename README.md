@@ -223,4 +223,19 @@ We interated on and finalized the UI design for both patient and doctor dashboar
 - Allows doctors to send personalized notes or feedback directly to patients, which can be reviewed in their individual portal.
 
 
-
+## Hardware -> Firebase
+For hardware, ensure you connect the two components from Milestone 2 so that the LDR component is connected to the button as well. Additionally, power the two components with a shared 3.7 / 2000 mAh battery and switch. To get this running with Firebase:
+#### Server Side Steps
+1. Go to your Firebase, and download the credentials.
+2. Navigate to `server` folder from terminal.
+3. Add the credentials JSON file to the `server` folder.
+4. Make sure you are replacing the file path for the credentials in the `flask_server.py` code.
+5. Set up a virtual environment with the following sequence (note - please ensure python 3.10 has been installed - this is necessary for some packages required)
+   ```terminal
+   rm -rf venv
+   python3.10 -m venv venv
+   source venv/bin/activate
+   pip install --no-deps --no-cache-dir -r requirements.txt
+   ```
+6. Run `flask_server.py`
+7. Turn on the switch and open the lid when the red light turns on!
