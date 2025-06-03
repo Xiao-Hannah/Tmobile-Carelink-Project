@@ -189,4 +189,7 @@ The frontend will be available on the local machine and will display recent pill
 7. Run `flask_server.py` with `python flask_server.py` in terminal.
 8. Run `streamlit_frontend.py` with `streamlit run streamlit_frontend.py`.
 9. Navigate to local host, turn on your camera device and start capturing the gestures by pressing the button!
-     
+
+
+# Milestone 3
+At the final stage, 
