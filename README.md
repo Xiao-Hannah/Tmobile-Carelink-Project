@@ -211,7 +211,7 @@ Data from both sensors are timestamped and sent to a cloud-based FastAPI/Flask b
 We interated on and finalized the UI design for both patient and doctor dashboards and implemented responsive dashboards using React, HTML, CSS, and JavaScript within the Cursor development environment to visualize and receiving real-time data collection from the pillbox. We also integrated our portals with two other teams sponsored by the T-Mobile CareLink+ project, allowing both patients and doctors to sign in through one unified platform.
 
 #### Key features include:
-##### Daily Pill Intake Tracking: 
+##### Daily Pill Intake Tracking:
 - Displays pill status by time and compartment using a simple, color-coded calendar view.
 ##### Weekly Adherence Summaries:
 - Visualizes weekly medication patterns using backend-generated data and intuitive charts.
