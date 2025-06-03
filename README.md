@@ -212,15 +212,15 @@ We interated on and finalized the UI design for both patient and doctor dashboar
 
 #### Key features include:
 ##### Daily Pill Intake Tracking: 
-Displays pill status by time and compartment using a simple, color-coded calendar view.
+- Displays pill status by time and compartment using a simple, color-coded calendar view.
 ##### Weekly Adherence Summaries:
-Visualizes weekly medication patterns using backend-generated data and intuitive charts.
+- Visualizes weekly medication patterns using backend-generated data and intuitive charts.
 ##### Blood Pressure Summary:
-Provides a quick overview of the patient’s recent blood pressure readings for contextual health insights.
+- Provides a quick overview of the patient’s recent blood pressure readings for contextual health insights.
 ##### Medication Adherence Reminders:
-Automatically sends reminders to patients based on missed doses or irregular intake patterns.
+- Automatically sends reminders to patients based on missed doses or irregular intake patterns.
 ##### Doctor-to-Patient Messaging:
-Allows doctors to send personalized notes or feedback directly to patients, which can be reviewed in their individual portal.
+- Allows doctors to send personalized notes or feedback directly to patients, which can be reviewed in their individual portal.
 
 
 
