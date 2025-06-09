@@ -1,4 +1,3 @@
-// === Pill Monitor with Refill Alert and Daily Pill Reminder ===
 #include <Arduino.h>
 #include <WiFi.h>
 #include <HTTPClient.h>
@@ -11,24 +10,16 @@
 #define RED_LED_PIN 9    // Red LED for daily pill reminder
 
 // WiFi
-#define WIFI_SSID "TMOBILE-C883"
-#define WIFI_PASSWORD "onion.bacteria.wreath.jury"
-
-// #define WIFI_SSID "UW MPSK"
-// #define WIFI_PASSWORD "9hpR?/3#^*"
+#define WIFI_SSID "TMOBILE-XXX" // replace with wifi ssid
+#define WIFI_PASSWORD "XXXXXXXXXXXXXX" // replace with wifi password
 
 // Server
-// const char* SERVER_URL = "http://10.19.197.81:8000/ldr-data";
-
-const char* SERVER_URL = "http://192.168.12.150:8000/ldr-data";
+const char* SERVER_URL = "http://XXX.XXX.XX.XXX:8000/ldr-data"; // flask server url, replace and KEEP ":8000/ldr-data"
 
 // LDR setup
 const int numLDRs = 7;
 const int ldrPins[numLDRs] = {1, 2, 3, 4, 5, 7, 6};
-float slotThresholds[numLDRs] = {1800, 2200, 1000, 800, 1500, 950, 2000};
-float baselineReadings[numLDRs];
-float finalReadings[numLDRs];
-bool pillWasPresent[numLDRs];
+const float removalThreshold = 400.0;
 
 // Refill alert config
 const int REFILL_THRESHOLD = 2;
@@ -42,13 +33,27 @@ const unsigned long SIMULATED_8AM_MS = 8000;          // 8 sec = 8AM
 bool pillTakenToday = false;
 
 bool isOpen = false;
-unsigned long lastRead = 0;
-const unsigned long readInterval = 1000;
 unsigned long sessionTimestamp = 0;
+
+float openStartReadings[numLDRs];
+float openEndReadings[numLDRs];
+unsigned long lidOpenStartTime = 0;
+const unsigned long openCaptureDelay = 1000;  // Capture baseline 1s after open
+bool openStartCaptured = false;
+bool openEndCaptured = false;
 
 float applyEMA(float prev, float val, float alpha = 0.2) {
   return alpha * val + (1 - alpha) * prev;
 }
+float rollingEndReadings[numLDRs];
+unsigned long lastRollingUpdateTime = 0;
+const unsigned long rollingUpdateInterval = 100;   // update every 100 ms
+
+const int rollingBufferSize = 20; // ~2 seconds if updated every 100ms
+float rollingEndHistory[7][rollingBufferSize];
+unsigned long rollingTimestamps[rollingBufferSize];
+int rollingIndex = 0;
+const unsigned long minDeltaBeforeClose = 500; // 0.5 seconds before close for snapshot
 
 void flashRefillLED() {
   for (int i = 0; i < 6; i++) {
@@ -66,7 +71,7 @@ void sendToServer(int present, int removed, String removedSlotsCSV) {
 
   DynamicJsonDocument doc(256);
   doc["timestamp"] = sessionTimestamp;
-  doc["pills_present"] = present;
+  // doc["pills_present"] = present; - innacurate, use removed instead
   doc["pills_removed"] = removed;
   doc["removed_slots"] = removedSlotsCSV;
 
@@ -85,13 +90,14 @@ void sendToServer(int present, int removed, String removedSlotsCSV) {
   http.end();
 }
 
-bool checkNeedsRefill(int filledSlots) {
+bool checkNeedsRefill() {
   unsigned long elapsed = millis() - refillStartTime;
   int simulatedDay = (elapsed / SIMULATED_DAY_MS) % 7;
-  Serial.printf("🕒 Simulated Day: %d | Filled Slots: %d\n", simulatedDay, filledSlots);
 
-  bool isSunday = (simulatedDay == SIMULATED_REFILL_DAY);
-  return isSunday || (!isSunday && filledSlots == 0);
+  Serial.printf("🕒 Simulated Day: %d\n", simulatedDay);
+
+  // Only return true if it's Sunday
+  return (simulatedDay == SIMULATED_REFILL_DAY);
 }
 
 void handleDailyReminder() {
@@ -150,70 +156,121 @@ void loop() {
   static bool lastLidState = HIGH;
   bool currentLidState = digitalRead(BUTTON_PIN);
 
-  if (currentLidState != lastLidState) {
-    isOpen = (currentLidState == HIGH);
-    Serial.println(isOpen ? "🟢 Lid OPEN — Capturing baseline..." : "🔴 Lid CLOSED — Analyzing changes");
+  // --- Lid just opened ---
+  if (currentLidState == HIGH && lastLidState == LOW) {
+    isOpen = true;
+    Serial.println("🟢 Lid OPEN — Capturing baseline...");
 
-    if (isOpen) {
-      pillTakenToday = true;
-      sessionTimestamp = time(nullptr);
-      Serial.printf("🆕 Session started — Timestamp: %lu\n", sessionTimestamp);
+    lidOpenStartTime = millis();
+    openStartCaptured = false;
+    sessionTimestamp = time(nullptr);
+    Serial.printf("🆕 Session started — Timestamp: %lu\n", sessionTimestamp);
 
-      for (int i = 0; i < numLDRs; i++) {
-        int val = analogRead(ldrPins[i]);
-        baselineReadings[i] = applyEMA(val, val);
-        pillWasPresent[i] = baselineReadings[i] > slotThresholds[i];
+    // Clear history
+    for (int i = 0; i < rollingBufferSize; i++) {
+      rollingTimestamps[i] = 0;
+      for (int j = 0; j < numLDRs; j++) {
+        rollingEndHistory[j][i] = 0;
       }
+    }
+    rollingIndex = 0;
+  }
 
-    } else {
-      int present = 0, removed = 0;
+  // --- Lid just closed ---
+  else if (currentLidState == LOW && lastLidState == HIGH) {
+    isOpen = false;
+    unsigned long lidCloseTime = millis();
+    unsigned long lidDuration = lidCloseTime - lidOpenStartTime;
 
-      for (int i = 0; i < numLDRs; i++) {
-        int val = analogRead(ldrPins[i]);
-        finalReadings[i] = applyEMA(baselineReadings[i], val);
-        bool removedHere = pillWasPresent[i] && (finalReadings[i] < baselineReadings[i] - 200);
-        if (!pillWasPresent[i]) continue;
+    if (lidDuration < 1000) {
+      Serial.printf("⚠️ Lid opened and closed too quickly (%.0f ms) — skipping analysis.\n", (float)lidDuration);
+      
+      // 🔴 Blink red LED briefly to show invalid capture
+      digitalWrite(RED_LED_PIN, HIGH);
+      delay(300);
+      digitalWrite(RED_LED_PIN, LOW);
 
-        if (removedHere) removed++;
-        else present++;
+      lastLidState = currentLidState;
+      return;
+    }
 
-        Serial.printf("Slot %d | Base=%.1f -> Final=%.1f | Removed: %s\n", i + 1,
-                      baselineReadings[i], finalReadings[i], removedHere ? "YES" : "NO");
-      }
+    Serial.println("🔴 Lid CLOSED — Analyzing changes");
 
-      Serial.printf("📤 Sending result — Present: %d | Removed: %d\n", present, removed);
-      int mostLikelySlot = -1;
-      float maxDiff = 0.0;
+    int bestIndex = -1;
 
-      for (int i = 0; i < numLDRs; i++) {
-        if (pillWasPresent[i]) {
-          float diff = baselineReadings[i] - finalReadings[i];
-          if (diff > 200 && diff > maxDiff) {
-            maxDiff = diff;
-            mostLikelySlot = i;
-          }
-        }
-      }
-
-      String removedSlotsCSV = "";
-      if (mostLikelySlot != -1) {
-        removedSlotsCSV = String(mostLikelySlot + 1);  // 1-indexed slot
-      }
-
-      sendToServer(present, removed, removedSlotsCSV);
-
-      if (checkNeedsRefill(present)) {
-        Serial.println("⚠️ Refill needed — flashing LED");
-        flashRefillLED();
-      } else {
-        Serial.println("✅ No refill needed");
+    for (int i = 0; i < rollingBufferSize; i++) {
+      if (lidCloseTime - rollingTimestamps[i] >= minDeltaBeforeClose) {
+        bestIndex = i;
       }
     }
 
-    delay(200);  // Debounce
+    if (bestIndex != -1) {
+      for (int i = 0; i < numLDRs; i++) {
+        openEndReadings[i] = rollingEndHistory[i][bestIndex];
+      }
+      Serial.printf("📸 Selected end snapshot from %.0f ms before lid close.\n", lidCloseTime - rollingTimestamps[bestIndex]);
+    } else {
+      Serial.println("⚠️ No stable end snapshot found — using latest.");
+      for (int i = 0; i < numLDRs; i++) {
+        openEndReadings[i] = rollingEndHistory[i][rollingIndex];
+      }
+    }
+
+    int present = 0, removed = 0;
+    String removedSlotsCSV = "";
+
+    for (int i = 0; i < numLDRs; i++) {
+      float diff = openStartReadings[i] - openEndReadings[i];
+      bool removedHere = diff > removalThreshold;
+
+      Serial.printf("Slot %d | Start=%.1f -> End=%.1f | Δ=%.1f | Removed: %s\n",
+                    i + 1, openStartReadings[i], openEndReadings[i], diff,
+                    removedHere ? "YES" : "NO");
+
+      if (removedHere) {
+        removed++;
+        if (removedSlotsCSV != "") removedSlotsCSV += ",";
+        removedSlotsCSV += String(i + 1);
+      } else {
+        present++;
+      }
+    }
+
+    Serial.printf("📤 Sending result — Removed: %d\n", removed);
+    sendToServer(present, removed, removedSlotsCSV);
+    pillTakenToday = true;  // Mark pill taken for today
+
+    if (checkNeedsRefill()) {
+      Serial.println("⚠️ Refill needed — flashing LED");
+      flashRefillLED();
+    } else {
+      Serial.println("✅ No refill needed");
+    }
+    openStartCaptured = false;
+  }
+
+  // --- While lid is open ---
+  if (isOpen) {
+    unsigned long timeOpen = millis() - lidOpenStartTime;
+
+    if (!openStartCaptured && timeOpen >= openCaptureDelay) {
+      for (int i = 0; i < numLDRs; i++) {
+        openStartReadings[i] = analogRead(ldrPins[i]);
+      }
+      openStartCaptured = true;
+      Serial.println("📸 Captured early baseline while lid open.");
+    }
+
+    if (millis() - lastRollingUpdateTime >= rollingUpdateInterval) {
+      for (int i = 0; i < numLDRs; i++) {
+        rollingEndHistory[i][rollingIndex] = analogRead(ldrPins[i]);
+      }
+      rollingTimestamps[rollingIndex] = millis();
+      rollingIndex = (rollingIndex + 1) % rollingBufferSize;
+      lastRollingUpdateTime = millis();
+    }
   }
 
   lastLidState = currentLidState;
   delay(20);
 }
-
